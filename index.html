@@ -18,6 +18,7 @@
         p.on('error', err => console.log('error', err))
  
         p.on('signal', data => {
+          console.log('Sending peering signal to CCTV...');
           ws.send(JSON.stringify({ cctv: false, init: true, data }));
         })
   
@@ -47,6 +48,7 @@
         ws.onmessage = ({ data: msg }) => {
           msg = JSON.parse(msg);
           if (msg.handshake) {
+            console.log('Handshake request from CCTV received!');
             peer.signal(msg.data);
           }
         }
