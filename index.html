@@ -14,61 +14,46 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-peer/9.7.2/simplepeer.min.js"></script> 
     <script>
-      const RECON_TIMEOUT = 2;
-
-      const peerConnection = () => {
-        const initPeer = (p) => {
-          p.on('error', err => console.log('error', err))
+      const initPeer = (p) => {
+        p.on('error', err => console.log('error', err))
+ 
+        p.on('signal', data => {
+          console.log('Sending peering signal to CCTV...');
+          ws.send(JSON.stringify({ cctv: false, init: true, data }));
+        })
   
-          p.on('signal', data => {
-            console.log('Sending peering signal to CCTV...');
-            ws.send(JSON.stringify({ cctv: false, init: true, data }));
-          })
-    
-          p.on('connect', () => {
-            console.log('CONNECT')
-          })
+        p.on('connect', () => {
+          console.log('CONNECT')
+        })
+  
+        p.on('data', data => {
+          data = JSON.parse(data);
+          document.getElementById('cctv1').src = `data:image/jpeg;base64,${data.monitor1}`;
+          document.getElementById('cctv2').src = `data:image/jpeg;base64,${data.monitor2}`;
+          document.getElementById('cctv3').src = `data:image/jpeg;base64,${data.monitor3}`;
+          document.getElementById('cctv4').src = `data:image/jpeg;base64,${data.monitor4}`;
+        })
+      }
+      var host = location.origin.replace(/^http/, 'ws');
 
-          p.on('close', () => {
-            console.log('CLOSED');
-            setTimeout(() => peerConnection(), RECON_TIMEOUT * 1000);
-          })
-    
-          p.on('data', data => {
-            data = JSON.parse(data);
-            document.getElementById('cctv1').src = `data:image/jpeg;base64,${data.monitor1}`;
-            document.getElementById('cctv2').src = `data:image/jpeg;base64,${data.monitor2}`;
-            document.getElementById('cctv3').src = `data:image/jpeg;base64,${data.monitor3}`;
-            document.getElementById('cctv4').src = `data:image/jpeg;base64,${data.monitor4}`;
-          })
-        }
-        var host = location.origin.replace(/^http/, 'ws');
+      const ws = new WebSocket(host);
 
-        const ws = new WebSocket(host);
-
-        let peer = new SimplePeer({
+      ws.onopen = () => {
+        const peer = new SimplePeer({
           initiator: true,
           trickle: true
         })
         initPeer(peer);
-
-        ws.onopen = () => {
-          ws.onmessage = ({ data: msg }) => {
-            msg = JSON.parse(msg);
-            if (msg.handshake) {
-              console.log('Handshake request from CCTV received!');
-              peer.signal(msg.data);
-            }
-
-            if (!msg.online) {
-              setTimeout(() => peerConnection(), RECON_TIMEOUT * 1000);
-            }
+        
+        ws.onmessage = ({ data: msg }) => {
+          msg = JSON.parse(msg);
+          if (msg.handshake) {
+            console.log('Handshake request from CCTV received!');
+            peer.signal(msg.data);
           }
         }
-        return peer;
       }
-
-      peerConnection();
+      
     </script> 
   </body>
 </html>
