@@ -51,7 +51,9 @@ wss.on('connection', function connection(ws) {
 
         clients[ws.id].on('close', function () {
           console.log(`Client ${ws.id} connection closed!`);
-          cctv.send(JSON.stringify({ handshake: false, clientId: ws.id }));
+          if (cctv) {
+            cctv.send(JSON.stringify({ handshake: false, clientId: ws.id }));
+          }
           clients[ws.id] = null;
         })
       }
