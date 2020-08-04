@@ -34,7 +34,7 @@ wss.on('connection', function connection(ws) {
     } else if (message.cctv && !message.init) {
 
       console.log(`CCTV sent handshake request to ${message.clientId}!`);
-      clients[message.clientId].send(JSON.stringify({ handshake: true, data: message.data }));
+      clients[message.clientId].send(JSON.stringify({ online: true, handshake: true, data: message.data }));
 
     } else if (!message.cctv && message.init) {
 
