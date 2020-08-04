@@ -1,0 +1,57 @@
+<html>
+  <body>
+    <style>
+      #outgoing {
+        width: 600px;
+        word-wrap: break-word;
+        white-space: normal;
+      }
+    </style>
+    <img id="cctv1" width="640" height="480"></img>
+    <img id="cctv2" width="640" height="480"></img>
+    <img id="cctv3" width="640" height="480"></img>
+    <img id="cctv4" width="640" height="480"></img>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-peer/9.7.2/simplepeer.min.js"></script> 
+    <script>
+      const initPeer = (p) => {
+        p.on('error', err => console.log('error', err))
+ 
+        p.on('signal', data => {
+          ws.send(JSON.stringify({ cctv: false, init: true, data }));
+        })
+  
+        p.on('connect', () => {
+          console.log('CONNECT')
+        })
+  
+        p.on('data', data => {
+          data = JSON.parse(data);
+          document.getElementById('cctv1').src = `data:image/jpeg;base64,${data.monitor1}`;
+          document.getElementById('cctv2').src = `data:image/jpeg;base64,${data.monitor2}`;
+          document.getElementById('cctv3').src = `data:image/jpeg;base64,${data.monitor3}`;
+          document.getElementById('cctv4').src = `data:image/jpeg;base64,${data.monitor4}`;
+        })
+      }
+      var host = location.origin.replace(/^http/, 'ws');
+
+      const ws = new WebSocket(host);
+
+      ws.onopen = () => {
+        const peer = new SimplePeer({
+          initiator: true,
+          trickle: false
+        })
+        initPeer(peer);
+        
+        ws.onmessage = ({ data: msg }) => {
+          msg = JSON.parse(msg);
+          if (msg.handshake) {
+            peer.signal(msg.data);
+          }
+        }
+      }
+      
+    </script> 
+  </body>
+</html>
