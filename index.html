@@ -41,7 +41,7 @@
       ws.onopen = () => {
         const peer = new SimplePeer({
           initiator: true,
-          trickle: false
+          trickle: true
         })
         initPeer(peer);
         
